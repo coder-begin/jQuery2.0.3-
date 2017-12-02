@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>大体框架</title>
+	<meta charset="utf-8">
+</head>
+<body>
+	<script type="text/javascript">
+		//匿名函数自执行
+		(function(){
+
+			(21,94):定义了一些变量和函数
+			只要是定义了一些常用的方法和下面要用到的正则匹配,如将数组方法变成局部的。。。
+
+
+			(96,283):给jQ对象添加方法和属性
+			//1.将原型赋值给fn
+			jQuery.fn = jQuery.prototype={
+				jquery: core_version,//定义了jquery版本 
+				//使用$().jquery能调到
+
+				constructor: jQuery,//明确了构造函数
+
+				//参数:(选择器,上下文,jQuery(document))
+				init(selector, context, rootjQuery) //做初始化处理
+				对于selector做判断
+				if(){
+					判断传的是否是标签:标签是要创建元素
+				}else{
+					判断传入的选择符,选择元素
+					还有一种情况是"<li>jhello"有标签符号和一般的字符
+				}
+
+
+				toArray()
+				
+
+
+				get()
+
+				pushStack()
+
+				each()
+
+				ready()
+
+				slice()
+
+				first()
+
+				last()
+
+				eq()
+
+				map()
+
+				end()
+			}
+
+
+
+			(285,347):jQ的继承方法 jQuery.extend = jQuery.fn.extend
+
+			(349,817):扩展一些工具方法
+
+			(877,2845):sizzlejs复杂选择器
+
+			(2880,3042):callback回调对象,实现函数的统一管理
+
+			(3034,3183):deferred对象:异步的统一管理
+
+			(3184,3295):support:功能检测的方法
+
+			(3308,3652):data:数据缓存
+
+			(3653,3797):queue:队列管理
+
+			(3803,4299):对元素属性的操作
+
+			(4300,5128):事件操作的方法
+
+			(5129,6057):DOM操作方法
+
+			(6058,6620):CSS处理
+
+			(6621,7854):提交的数据和ajax操作
+
+			(7855,8584):运动的方法
+
+			(8585,8792):位置和窗口大小方法
+
+			(8804,8821):对模块化的支持
+
+			(8826):对外提供接口
+		}();
+
+
+
+
+	</script>
+</body>
+</html>
