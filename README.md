@@ -100,6 +100,27 @@ $.nodeName(document.body,"body")//返回true
 ```
 ### 17. each:遍历函数,可以遍历所有类数组,不只是jQuery对象,数组，json...都可以遍历
 
-### 18. 
+### 18. trim:去前后空格
+
+### 19. makeArray：将类数组转成数组,当然还可以传入两个参数,如果第二个参数传入的是一个含有length属性的JSON,那么会得到一个合并的JSON对象
+```
+var oLi=document.getElementsByTagName("li");//假如获取到3个li
+$.makeArray(oLi)//返回[li,li,li]  就转成了数组类型了
+```
+
+### 20. merge:和上面的makeArray功能类似,只是参数是相反的，而且对于非数组的操作不一样
+
+### 21. grep:筛选数组元素,类似于原生的filter方法,只是多了一个参数，第二个参数表示是否取反
+```
+$.grep([1,2,3,4],function(item){
+	return item>3;
+},true);
+加上true表示取反，即取item<=3的
+
+```
+
+### 22. map:类似于原生的map方法，只是多了一个取反操作
+
+### 23. 
 
 ### 参考[妙味课堂](http://2017.miaov.com)关于jQuery部分的视频(有兴趣的可以去看一下)

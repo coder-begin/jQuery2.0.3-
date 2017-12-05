@@ -749,9 +749,11 @@ jQuery.extend({
 		var value,
 			i = 0,
 			length = obj.length,
+			//判断是不是类数组
 			isArray = isArraylike( obj );
 
 		if ( args ) {
+			//提供第三个参数是给内部使用的
 			if ( isArray ) {
 				for ( ; i < length; i++ ) {
 					value = callback.apply( obj[ i ], args );
@@ -772,15 +774,20 @@ jQuery.extend({
 
 		// A special, fast, case for the most common use of each
 		} else {
+			//如果是类数组
 			if ( isArray ) {
 				for ( ; i < length; i++ ) {
+					//对每个值进行操作
+					//回调函数提供2个参数(每一项的下表,每一项的值)
 					value = callback.call( obj[ i ], i, obj[ i ] );
-
+					//当返回false的时候表示不需要继续下面的调用,直接结束
 					if ( value === false ) {
 						break;
 					}
 				}
 			} else {
+				//如果不是类数组
+				//直接for in循环每个参数
 				for ( i in obj ) {
 					value = callback.call( obj[ i ], i, obj[ i ] );
 
@@ -794,42 +801,53 @@ jQuery.extend({
 		return obj;
 	},
 
+	//去掉亲厚空格
 	trim: function( text ) {
 		return text == null ? "" : core_trim.call( text );
 	},
 
 	// results is for internal usage only
+	//将类数组转成数组
 	makeArray: function( arr, results ) {
+		//如果有第二个参数就是直接赋值给ret
 		var ret = results || [];
-
+		//判断arr不为空
 		if ( arr != null ) {
+			//判断传入的是不是一个有length属性的类数组
 			if ( isArraylike( Object(arr) ) ) {
+				//是类数组就调用merge方法(其中要排除掉string这种类型的)
 				jQuery.merge( ret,
 					typeof arr === "string" ?
 					[ arr ] : arr
 				);
 			} else {
+				//不是类数组直接把他添加到数组中的
 				core_push.call( ret, arr );
 			}
 		}
 
 		return ret;
 	},
-
+	//寻找元素在数组中的位置
 	inArray: function( elem, arr, i ) {
+		//调用数组的indexOf方法来找
 		return arr == null ? -1 : core_indexOf.call( arr, elem, i );
 	},
 
+	//合并数组,只针对两个数组或者一个数组,一个特殊json进行合并
 	merge: function( first, second ) {
 		var l = second.length,
 			i = first.length,
 			j = 0;
 
 		if ( typeof l === "number" ) {
+			//当第二个参数有长度是number属性的时候表示是数组
+			//直接合并
 			for ( ; j < l; j++ ) {
 				first[ i++ ] = second[ j ];
 			}
 		} else {
+			//当第二个参数不是数组的时候只有特殊json才能合并
 			while ( second[j] !== undefined ) {
 				first[ i++ ] = second[ j++ ];
 			}
@@ -840,17 +858,21 @@ jQuery.extend({
 		return first;
 	},
 
+	//这是一个类似于filter的过滤函数
 	grep: function( elems, callback, inv ) {
 		var retVal,
 			ret = [],
 			i = 0,
 			length = elems.length;
-		inv = !!inv;
+		inv = !!inv;//第三个参数可以对结果取反
 
 		// Go through the array, only saving the items
 		// that pass the validator function
+		//循环每个元素
 		for ( ; i < length; i++ ) {
+			//对每个元素执行callback得到返回结果是true函数false
 			retVal = !!callback( elems[ i ], i );
+			//执行比对(不传第三个参数就是inv就是false,那么执行结果返回true就会被push)
 			if ( inv !== retVal ) {
 				ret.push( elems[ i ] );
 			}
@@ -860,6 +882,7 @@ jQuery.extend({
 	},
 
 	// arg is for internal usage only
+	//对每个数据进行操作,返回操作完成后的数据
 	map: function( elems, callback, arg ) {
 		var value,
 			i = 0,
@@ -868,7 +891,9 @@ jQuery.extend({
 			ret = [];
 
 		// Go through the array, translating each of the items to their
+		//判断是不是类数组
 		if ( isArray ) {
+			//是类数组对每个item进行操作,操作完成的结果存成数组返回
 			for ( ; i < length; i++ ) {
 				value = callback( elems[ i ], i, arg );
 
@@ -879,6 +904,8 @@ jQuery.extend({
 
 		// Go through every key on the object,
 		} else {
+			//当传入的是一个对象的时候对对象的每个属性进行操作
+			//操作完的结果存成数组返回
 			for ( i in elems ) {
 				value = callback( elems[ i ], i, arg );
 
@@ -889,6 +916,8 @@ jQuery.extend({
 		}
 
 		// Flatten any nested arrays
+		//当每次操作完成如果返回的是数组,那么为了不想最后返回一个复合数组
+		//就对每次操作返回的数组进行拼接
 		return core_concat.apply( [], ret );
 	},
 
@@ -897,24 +926,37 @@ jQuery.extend({
 
 	// Bind a function to a context, optionally partially applying any
 	// arguments.
+	//更改this指向
 	proxy: function( fn, context ) {
 		var tmp, args, proxy;
 
+		//支持一种对象方法的写法
+		//var obj={show:function(){}}
+		//$.proxy(obj,"show");
+		//当这种情况的时候就会执行下面的
 		if ( typeof context === "string" ) {
+			//对象的方法给temp
 			tmp = fn[ context ];
+			//上下文改为对象
 			context = fn;
+			//fn赋值为temp
 			fn = tmp;
 		}
 
 		// Quick check to determine if target is callable, in the spec
 		// this throws a TypeError, but we will just return undefined.
 		if ( !jQuery.isFunction( fn ) ) {
+			//当第一个参数不是function的时候直接返回
 			return undefined;
 		}
 
 		// Simulated bind
+		//这个方法支持多种参数写法
+		//$.proxy(函数,上下文,[函数的参数])([函数的参数])  //中括号表示可有可无
+		//这儿就要获取函数的参数
 		args = core_slice.call( arguments, 2 );
 		proxy = function() {
+			//将所有参数合并成数组(就是上面的args和调用的时候传入的参数)再使用apply来改上下文执行
 			return fn.apply( context || this, args.concat( core_slice.call( arguments ) ) );
 		};
 
