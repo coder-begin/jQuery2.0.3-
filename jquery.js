@@ -968,43 +968,55 @@ jQuery.extend({
 
 	// Multifunctional method to get and set values of a collection
 	// The value/s can optionally be executed if it's a function
+	// 用作css等方法的底层方法（不传参数就是获取值,传入参数就是设置值）
+	// 参数(要设置的元素,回调函数[可以是设置css也可以是设置attr等等],传入的第一个参数,传入的第二个参数,true表示要设置,false表示要获取,,)
+	// $("#div").css("width","100px");  对应的就是(this,处理样式的回调,width,100px,false,)
+	// $("#div").css({"width":"100px",height:"100px"});
+	/**
+	 * 这个方法是css(),attr()等既可以设置也可以获取的方法的抽象
+	 * 
+	 */
 	access: function( elems, fn, key, value, chainable, emptyGet, raw ) {
 		var i = 0,
-			length = elems.length,
-			bulk = key == null;
+			length = elems.length,//获取要变化的元素的个数
+			bulk = key == null;	//判断传入的第一个参数传没传值
 
 		// Sets many values
+		// 当传入的第一个参数是一个对象的时候表示要设置多个值
 		if ( jQuery.type( key ) === "object" ) {
-			chainable = true;
-			for ( i in key ) {
+			chainable = true;  //设置值
+			for ( i in key ) {	//对传入的对象中的每个值进行递归调用来设置
 				jQuery.access( elems, fn, i, key[i], true, emptyGet, raw );
 			}
 
 		// Sets one value
+		// 传入的是单个值
 		} else if ( value !== undefined ) {
-			chainable = true;
+			//当传入的第二个参数不是undefined的时候就表示要设置值了
+			chainable = true;//表示设置值的标志设为true
 
-			if ( !jQuery.isFunction( value ) ) {
-				raw = true;
+			if ( !jQuery.isFunction( value ) ) {//判断传入的第二个参数是不是一个函数
+				raw = true;//不是函数raw赋值为true
 			}
 
-			if ( bulk ) {
+			if ( bulk ) {//如果第一个参数是null或者undefined;
 				// Bulk operations run against the entire set
-				if ( raw ) {
-					fn.call( elems, value );
+				if ( raw ) {//如果第二个参数不是一个函数
+					fn.call( elems, value );//那就是要获取值,直接调用获取值的回调
 					fn = null;
-
 				// ...except when executing function values
-				} else {
-					bulk = fn;
-					fn = function( elem, key, value ) {
+				} else {//如果第二个参数是一个函数
+					bulk = fn;//把回调函数赋值给第一个参数的标识
+					fn = function( elem, key, value ) {//对传入的函数进行包装而不是立即执行,等下面一起执行
 						return bulk.call( jQuery( elem ), value );
 					};
 				}
 			}
 
-			if ( fn ) {
+			if ( fn ) {//对每个元素执行操作
 				for ( ; i < length; i++ ) {
+					//fn两种可能,第一种就是正常的回调
+					//第二种是传入了一个函数参数，那么直接就是对每个元素执行传入的函数，而不是执行内部的回调
 					fn( elems[i], key, raw ? value : value.call( elems[i], i, fn( elems[i], key ) ) );
 				}
 			}
@@ -1014,6 +1026,8 @@ jQuery.extend({
 			elems :
 
 			// Gets
+			// 当第一个参数没有的时候就是获取值(因为前面已经处理了第一个参数是null有第二个参数的情况)
+			//当第一个参数有而没有第二个参数的时候执行 fn( elems[0], key )
 			bulk ?
 				fn.call( elems ) :
 				length ? fn( elems[0], key ) : emptyGet;

@@ -21,12 +21,11 @@
 
 	// })(window,undefined);
 	//传参数window是为了减少查询链同时便于压缩
-	var arr=[0,1,2,3];
-	var j={
-		name:1,
-		age:2,
-		length:1
+	function show(key,value){
+		console.log(key==null);
+		console.log(typeof value);
 	}
+	show(null,function(){});
 
 
 
