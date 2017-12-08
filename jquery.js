@@ -1033,24 +1033,36 @@ jQuery.extend({
 				length ? fn( elems[0], key ) : emptyGet;
 	},
 
+	//获取当前时间
 	now: Date.now,
 
 	// A method for quickly swapping in/out CSS properties to get correct calculations.
 	// Note: this method belongs to the css module but it's needed here for the support module.
 	// If support gets modularized, this method should be moved back to the css module.
+	//做样式转换
+	/**
+	 * 像使用$("#div").width()这样的方法的时候即使元素的display是none
+	 * 也是能够获取到的，这里就是用的这个方法，现将display变为block，获取到width后再将
+	 * 样式还原
+	 */
 	swap: function( elem, options, callback, args ) {
 		var ret, name,
-			old = {};
+			old = {};//存储老的样式
 
 		// Remember the old values, and insert the new ones
+		
 		for ( name in options ) {
+			//存一下老样式
 			old[ name ] = elem.style[ name ];
+			//给元素附上新的样式
 			elem.style[ name ] = options[ name ];
 		}
 
+		//获取到你要的样式
 		ret = callback.apply( elem, args || [] );
 
 		// Revert the old values
+		//将原来的样式还原回来
 		for ( name in options ) {
 			elem.style[ name ] = old[ name ];
 		}
@@ -1094,24 +1106,26 @@ jQuery.each("Boolean Number String Function Array Date RegExp Object Error".spli
 	class2type[ "[object " + name + "]" ] = name.toLowerCase();
 });
 
+//判断对象是不是类数组
 function isArraylike( obj ) {
-	var length = obj.length,
-		type = jQuery.type( obj );
+	var length = obj.length,//获取传入的对象的长度
+		type = jQuery.type( obj );//判断obj类型
 
-	if ( jQuery.isWindow( obj ) ) {
-		return false;
+	if ( jQuery.isWindow( obj ) ) {//判断是不是window对象
+		return false;//window不是类数组
 	}
 
-	if ( obj.nodeType === 1 && length ) {
-		return true;
+	if ( obj.nodeType === 1 && length ) {//判断节点类型且长度大于0
+		return true;//元素类型是类数组
 	}
 
-	return type === "array" || type !== "function" &&
+	return type === "array" || type !== "function" &&//数组，对象但不是function类型并且有长度属性并且(长度-1)是对象的属性,返回true【这个指的就是arguments】
 		( length === 0 ||
 		typeof length === "number" && length > 0 && ( length - 1 ) in obj );
 }
 
 // All jQuery objects should point back to these
+//根节点
 rootjQuery = jQuery(document);
 /*!
  * Sizzle CSS Selector Engine v1.9.4-pre
@@ -3093,16 +3107,7 @@ jQuery.contains = Sizzle.contains;
 
 })( window );
 // String to Object options format cache
-var optionsCache = {};
 
-// Convert String-formatted options into Object-formatted ones and store in cache
-function createOptions( options ) {
-	var object = optionsCache[ options ] = {};
-	jQuery.each( options.match( core_rnotwhite ) || [], function( _, flag ) {
-		object[ flag ] = true;
-	});
-	return object;
-}
 
 /*
  * Create a callback list using the following parameters:
@@ -3126,13 +3131,35 @@ function createOptions( options ) {
  *	stopOnFalse:	interrupt callings when a callback returns false
  *
  */
+//为下面Callbacks的option创建对象
+var optionsCache = {};
+
+// Convert String-formatted options into Object-formatted ones and store in cache
+function createOptions( options ) {
+	//为object赋初始值为{}，同时清空optionsCache中option的值
+	var object = optionsCache[ options ] = {};
+	//以空格分割传入的字符串
+	//最后存成对象的形式
+	
+	jQuery.each( options.match( core_rnotwhite ) || [], function( _, flag ) {
+		object[ flag ] = true;
+	});
+	return object;
+}
+ //jQuery中的会掉类，专门管理回调函数的
+ /**
+  * 
+  * @param {*} options 
+  *options:(once||memory||unique||stopOnFalse)
+  *           执行一次||可以换顺序添加||去重(不执行同一函数)||在返回false的时候不执行
+  */
 jQuery.Callbacks = function( options ) {
 
 	// Convert options from String-formatted to Object-formatted if needed
 	// (we check in cache first)
-	options = typeof options === "string" ?
-		( optionsCache[ options ] || createOptions( options ) ) :
-		jQuery.extend( {}, options );
+	options = typeof options === "string" ?//判断是不是字符串
+		( optionsCache[ options ] || createOptions( options ) ) ://是字符串就把optionsCache中对应的值赋值给option或者
+		jQuery.extend( {}, options );//不是字符串直接把它拷贝到一个空对象中
 
 	var // Last fire value (for non-forgettable lists)
 		memory,
@@ -3147,9 +3174,9 @@ jQuery.Callbacks = function( options ) {
 		// Index of currently firing callback (modified by remove if needed)
 		firingIndex,
 		// Actual callback list
-		list = [],
+		list = [],//存储所有回调的数组
 		// Stack of fire calls for repeatable lists
-		stack = !options.once && [],
+		stack = !options.once && [],//判断是不是只执行一次
 		// Fire callbacks
 		fire = function( data ) {
 			memory = options.memory && data;
@@ -3178,8 +3205,10 @@ jQuery.Callbacks = function( options ) {
 			}
 		},
 		// Actual Callbacks object
+		//数据接口(就是暴露给用户的方法对象)
 		self = {
 			// Add a callback or a collection of callbacks to the list
+			//添加方法
 			add: function() {
 				if ( list ) {
 					// First, we save the current length
@@ -3211,6 +3240,7 @@ jQuery.Callbacks = function( options ) {
 				return this;
 			},
 			// Remove a callback from the list
+			//删除方法
 			remove: function() {
 				if ( list ) {
 					jQuery.each( arguments, function( _, arg ) {
@@ -3233,10 +3263,12 @@ jQuery.Callbacks = function( options ) {
 			},
 			// Check if a given callback is in the list.
 			// If no argument is given, return whether or not list has callbacks attached.
+			//判断有没有这个方法
 			has: function( fn ) {
 				return fn ? jQuery.inArray( fn, list ) > -1 : !!( list && list.length );
 			},
 			// Remove all callbacks from the list
+			//清空所有回调方法
 			empty: function() {
 				list = [];
 				firingLength = 0;
@@ -3264,6 +3296,7 @@ jQuery.Callbacks = function( options ) {
 				return !stack;
 			},
 			// Call all callbacks with the given context and arguments
+			//触发所有方法
 			fireWith: function( context, args ) {
 				if ( list && ( !fired || stack ) ) {
 					args = args || [];
@@ -3277,11 +3310,13 @@ jQuery.Callbacks = function( options ) {
 				return this;
 			},
 			// Call all the callbacks with the given arguments
+			//触发所有方法(这个会调用fireWith)
 			fire: function() {
 				self.fireWith( this, arguments );
 				return this;
 			},
 			// To know if the callbacks have already been called at least once
+			//判断是否所有回调都触发了
 			fired: function() {
 				return !!fired;
 			}
@@ -3289,6 +3324,9 @@ jQuery.Callbacks = function( options ) {
 
 	return self;
 };
+
+
+
 jQuery.extend({
 
 	Deferred: function( func ) {
