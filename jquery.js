@@ -3162,13 +3162,21 @@ jQuery.Callbacks = function( options ) {
 		jQuery.extend( {}, options );//不是字符串直接把它拷贝到一个空对象中
 
 	var // Last fire value (for non-forgettable lists)
+		//判断在fire过后添加的函数能否执行
 		memory,
+		
 		// Flag to know if list was already fired
+		//表示是否触发了fire方法
 		fired,
+		
 		// Flag to know if list is currently firing
+		//表示是否正在执行回调
 		firing,
+		
 		// First callback to fire (used internally by add and fireWith)
+		//
 		firingStart,
+		
 		// End of the loop when firing
 		firingLength,
 		// Index of currently firing callback (modified by remove if needed)
@@ -3179,27 +3187,29 @@ jQuery.Callbacks = function( options ) {
 		stack = !options.once && [],//判断是不是只执行一次
 		// Fire callbacks
 		fire = function( data ) {
-			memory = options.memory && data;
-			fired = true;
-			firingIndex = firingStart || 0;
-			firingStart = 0;
-			firingLength = list.length;
-			firing = true;
+			memory = options.memory && data;//当没有memory这个实参的时候options.memory就是false,memory就会一直是false
+															//但是一旦有了memory这个参数options.memory就会是true，而data一直是一个数组
+			fired = true;//表示触发了fire方法
+			firingIndex = firingStart || 0;//表示正在触发的回调的下标(如果是memery的情况下firingStart就不是0)
+			firingStart = 0;//正在回调的初始值
+			firingLength = list.length;//正在回调的函数的长度
+			firing = true;//表示正在执行回调函数
 			for ( ; list && firingIndex < firingLength; firingIndex++ ) {
-				if ( list[ firingIndex ].apply( data[ 0 ], data[ 1 ] ) === false && options.stopOnFalse ) {
+				if ( list[ firingIndex ].apply( data[ 0 ], data[ 1 ] ) === false && options.stopOnFalse ) {//判断如果回调函数返回false或者options.stopOnFalse为false那么就不会执行之后的回调函数了
 					memory = false; // To prevent further calls using add
 					break;
 				}
 			}
-			firing = false;
-			if ( list ) {
-				if ( stack ) {
-					if ( stack.length ) {
-						fire( stack.shift() );
+			firing = false;//表示回调结束
+			if ( list ) {//判断list是否存在
+				if ( stack ) {//判断堆变量是否存在(只有没有once这个属性的时候stack才会是[]，也才会存在)
+					if ( stack.length ) {//判断堆数组的长度是否大于0(只有在执行回调函数的时候回调函数内部又使用了firestack才会>0)
+						fire( stack.shift() );//回调堆中函数
 					}
-				} else if ( memory ) {
+				} else if ( memory ) {//当存在once和memory的时候list被清空，之后的直接fire就是无效的
+											//但是之后的add是有效的,因为memory存在
 					list = [];
-				} else {
+				} else {//当存在once而不存在memory的时候之后的fire就是无效的add也是无效的
 					self.disable();
 				}
 			}
@@ -3210,31 +3220,32 @@ jQuery.Callbacks = function( options ) {
 			// Add a callback or a collection of callbacks to the list
 			//添加方法
 			add: function() {
-				if ( list ) {
+				if ( list ) {//判断如果存function的数组存在
 					// First, we save the current length
 					var start = list.length;
-					(function add( args ) {
-						jQuery.each( args, function( _, arg ) {
-							var type = jQuery.type( arg );
-							if ( type === "function" ) {
-								if ( !options.unique || !self.has( arg ) ) {
-									list.push( arg );
+					(function add( args ) {//args表示的是传入的所有实参
+						jQuery.each( args, function( _, arg ){ //遍历所有实参
+							var type = jQuery.type( arg );//判断实参类型
+							if ( type === "function" ) {//是function
+								if ( !options.unique || !self.has( arg ) ) {//判断有没有设定判断重复选项unique,没有就直接添加到list中去
+									list.push( arg );								//有的话就调用has方法来判断这个参数list中有没有，没有就添加，有就跳过
 								}
 							} else if ( arg && arg.length && type !== "string" ) {
 								// Inspect recursively
-								add( arg );
+								add( arg );//如果传入的是一个类数组就会执行递归遍历数组的内容是不是函数再加进去
 							}
 						});
 					})( arguments );
 					// Do we need to add the callbacks to the
 					// current firing batch?
 					if ( firing ) {
+						//如果回调函数正在执行
 						firingLength = list.length;
 					// With memory, if we're not firing then
 					// we should call right away
-					} else if ( memory ) {
+					} else if ( memory ) {//如果memory不是undefined，就是在fire之后又调用了add方法
 						firingStart = start;
-						fire( memory );
+						fire( memory );//只有之前调用过fire一次，这个函数才会起作用
 					}
 				}
 				return this;
@@ -3242,17 +3253,17 @@ jQuery.Callbacks = function( options ) {
 			// Remove a callback from the list
 			//删除方法
 			remove: function() {
-				if ( list ) {
-					jQuery.each( arguments, function( _, arg ) {
+				if ( list ) {//如果list不为空
+					jQuery.each( arguments, function( _, arg ) {//遍历每一个要删除的
 						var index;
-						while( ( index = jQuery.inArray( arg, list, index ) ) > -1 ) {
-							list.splice( index, 1 );
+						while( ( index = jQuery.inArray( arg, list, index ) ) > -1 ) {//判断在不在list中
+							list.splice( index, 1 );	//在list中直接删除
 							// Handle firing indexes
-							if ( firing ) {
-								if ( index <= firingLength ) {
-									firingLength--;
+							if ( firing ) {//如果回调函数正在执行
+								if ( index <= firingLength ) {//判断要删除的函数在list中的位置是否在执行函数之前
+									firingLength--;//如果是那么firingLength--,如果不--，那么执行队列的最后一个会超出数组返回
 								}
-								if ( index <= firingIndex ) {
+								if ( index <= firingIndex ) {//如果要删除的函数在执行位置之前，那么执行位置往前移一个
 									firingIndex--;
 								}
 							}
@@ -3265,44 +3276,52 @@ jQuery.Callbacks = function( options ) {
 			// If no argument is given, return whether or not list has callbacks attached.
 			//判断有没有这个方法
 			has: function( fn ) {
+				//判断fn在不在list中
+				//如果fn不存在就返回list是否存在
 				return fn ? jQuery.inArray( fn, list ) > -1 : !!( list && list.length );
 			},
 			// Remove all callbacks from the list
 			//清空所有回调方法
 			empty: function() {
-				list = [];
+				list = [];//list赋值为空数组就行了
 				firingLength = 0;
 				return this;
 			},
 			// Have the list do nothing anymore
+			//阻止回调执行
 			disable: function() {
+				//把list，stack，memory设为undefined，阻止执行
 				list = stack = memory = undefined;
 				return this;
 			},
 			// Is it disabled?
+			//判断回调是否能执行
 			disabled: function() {
+				//list中没数据就是不能执行了
 				return !list;
 			},
 			// Lock the list in its current state
+			//锁定回调，这样的话就没法执行了，和上面disable的区别就在于memory如果有的话还是能执行fire之后的回调的
 			lock: function() {
 				stack = undefined;
-				if ( !memory ) {
+				if ( !memory ) {//如果没有memory这个参数就是直接清空回调了
 					self.disable();
 				}
 				return this;
 			},
 			// Is it locked?
+			//判断是否锁定
 			locked: function() {
 				return !stack;
 			},
 			// Call all callbacks with the given context and arguments
 			//触发所有方法
 			fireWith: function( context, args ) {
-				if ( list && ( !fired || stack ) ) {
-					args = args || [];
-					args = [ context, args.slice ? args.slice() : args ];
-					if ( firing ) {
-						stack.push( args );
+				if ( list && ( !fired || stack ) ) {//判断list是否为空,不为空且fired为false或者stack为false才能进行下面的
+					args = args || [];		//args是给每个回调函数的实参		
+					args = [ context, args.slice ? args.slice() : args ];//判断args是不是数组
+					if ( firing ) {//当回调函数还在执行的时候
+						stack.push( args );//将包含当前执行上下文的数组传入stack中
 					} else {
 						fire( args );
 					}
@@ -3328,23 +3347,31 @@ jQuery.Callbacks = function( options ) {
 
 
 jQuery.extend({
-
+	//延迟对象，和正统Promise是不一样的
 	Deferred: function( func ) {
 		var tuples = [
 				// action, add listener, listener list, final state
+				//对应的方法
+				//执行resolve,那么就只能执行done来进行后续操作,其他类似,而且和promise一样都只能有一次的状态转换
+				//即pending->resolve;pending->reject,到resolved或者rejected就不能再变了,所以使用once
+				//notify表示可以一直执行下去，状态不会变成resolved或者rejected
 				[ "resolve", "done", jQuery.Callbacks("once memory"), "resolved" ],
 				[ "reject", "fail", jQuery.Callbacks("once memory"), "rejected" ],
 				[ "notify", "progress", jQuery.Callbacks("memory") ]
 			],
 			state = "pending",
 			promise = {
+				//返回当前状态
 				state: function() {
 					return state;
 				},
+				//总是执行，表示不论执行的是resolve还是reject,always都能继续执行
+				//而且后边如果链式调用done或者fail也是能够继续执行的
 				always: function() {
 					deferred.done( arguments ).fail( arguments );
 					return this;
 				},
+				//和Promise类似,不一样的是它接受三个参数(done,fail,progress)
 				then: function( /* fnDone, fnFail, fnProgress */ ) {
 					var fns = arguments;
 					return jQuery.Deferred(function( newDefer ) {
@@ -3468,6 +3495,9 @@ jQuery.extend({
 		return deferred.promise();
 	}
 });
+
+
+
 jQuery.support = (function( support ) {
 	var input = document.createElement("input"),
 		fragment = document.createDocumentFragment(),
